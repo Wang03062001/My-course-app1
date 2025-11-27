@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
-import { getDb } from '../../../../lib/db';
+import { getDb } from '@/lib/db';
 
 // Tạo transporter dùng Gmail + mật khẩu ứng dụng
 function createTransporter() {
@@ -10,6 +10,8 @@ function createTransporter() {
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
+  const hashedCode = await bcrypt.hash(code, 10);
+// rồi lưu hashedCode vào DB thay vì code
 
   if (!user || !pass) {
     console.warn('⚠️ SMTP_USER hoặc SMTP_PASS chưa được cấu hình');

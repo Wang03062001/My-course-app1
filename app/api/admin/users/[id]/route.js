@@ -1,7 +1,7 @@
 // app/api/admin/users/[id]/route.js
 import { NextResponse } from 'next/server';
-import { getDb } from '../../../../../lib/db';
-import { verifyToken } from '../../../../../lib/auth';
+import { getDb } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
 import bcrypt from 'bcrypt';
 
 // Lấy payload từ token và kiểm tra admin

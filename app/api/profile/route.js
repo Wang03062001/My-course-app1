@@ -1,8 +1,8 @@
 // app/api/profile/route.js
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import { getDb } from '../../../lib/db';
-import { verifyToken } from '../../../lib/auth';
+import { getDb } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
 
 // Lấy token từ header Authorization hoặc cookie "token"
 function extractToken(request) {

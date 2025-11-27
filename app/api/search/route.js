@@ -1,6 +1,6 @@
 // app/api/search/route.js
 import { NextResponse } from "next/server";
-import { getDb } from "../../../lib/db";
+import { getDb } from '@/lib/db';
 
 // GET /api/search?q=tu-khoa
 export async function GET(req) {
