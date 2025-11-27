@@ -5,6 +5,7 @@ import { verifyToken, hashPassword } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
+// Lấy admin từ token
 function getAdminFromReq(req) {
   const auth = req.headers.get('authorization') || '';
   let token = null;
@@ -19,7 +20,7 @@ function getAdminFromReq(req) {
   return decoded;
 }
 
-// PUT /api/admin/users/[id]
+/* ========== PUT /api/admin/users/[id] – sửa user ========== */
 export async function PUT(req, { params }) {
   try {
     const admin = getAdminFromReq(req);
@@ -30,7 +31,10 @@ export async function PUT(req, { params }) {
       );
     }
 
-    const userId = parseInt(params.id, 10);
+    // ⬇️ params là Promise => cần await
+    const { id } = await params;
+    const userId = parseInt(id, 10);
+
     if (!userId || Number.isNaN(userId)) {
       return NextResponse.json(
         { error: 'ID user không hợp lệ' },
@@ -41,8 +45,11 @@ export async function PUT(req, { params }) {
     const body = await req.json();
     const { full_name, email, role, newPassword } = body || {};
 
+    // Lấy user hiện tại
     const currentRes = await dbQuery(
-      `SELECT id, username, role FROM users WHERE id = $1`,
+      `SELECT id, username, role
+       FROM users
+       WHERE id = $1`,
       [userId]
     );
     if (currentRes.rows.length === 0) {
@@ -110,7 +117,7 @@ export async function PUT(req, { params }) {
   }
 }
 
-// DELETE /api/admin/users/[id]
+/* ========== DELETE /api/admin/users/[id] – xoá user ========== */
 export async function DELETE(req, { params }) {
   try {
     const admin = getAdminFromReq(req);
@@ -121,7 +128,9 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    const userId = parseInt(params.id, 10);
+    const { id } = await params;
+    const userId = parseInt(id, 10);
+
     if (!userId || Number.isNaN(userId)) {
       return NextResponse.json(
         { error: 'ID user không hợp lệ' },
@@ -130,7 +139,9 @@ export async function DELETE(req, { params }) {
     }
 
     const currentRes = await dbQuery(
-      `SELECT id, role FROM users WHERE id = $1`,
+      `SELECT id, role
+       FROM users
+       WHERE id = $1`,
       [userId]
     );
     if (currentRes.rows.length === 0) {
@@ -142,9 +153,12 @@ export async function DELETE(req, { params }) {
 
     const current = currentRes.rows[0];
 
+    // Không xoá admin cuối cùng
     if (current.role === 'admin') {
       const countRes = await dbQuery(
-        `SELECT COUNT(*) AS cnt FROM users WHERE role = 'admin'`
+        `SELECT COUNT(*) AS cnt
+         FROM users
+         WHERE role = 'admin'`
       );
       const count = Number(countRes.rows[0].cnt || 0);
       if (count <= 1) {
@@ -159,7 +173,8 @@ export async function DELETE(req, { params }) {
     }
 
     await dbQuery(
-      `DELETE FROM users WHERE id = $1`,
+      `DELETE FROM users
+       WHERE id = $1`,
       [userId]
     );
 
