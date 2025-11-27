@@ -2,22 +2,39 @@
 
 import useAuth from '../../../hooks/useAuth';
 
-export default function UserProfile() {
-  const { user } = useAuth();
+// Không cho Next.js prerender static
+export const dynamic = 'force-dynamic';
+
+export default function UserProfilePage() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="admin-card">
+        <h1 className="admin-title">Hồ sơ người dùng</h1>
+        <p>Đang kiểm tra đăng nhập...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="admin-card">
+        <h1 className="admin-title">Hồ sơ người dùng</h1>
+        <p>Bạn chưa đăng nhập. Vui lòng đăng nhập để xem hồ sơ.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="glass-card">
-      <h1 className="page-title">Hồ sơ cá nhân</h1>
-      <p className="page-subtitle">Thông tin cơ bản của tài khoản.</p>
+    <div className="admin-card">
+      <h1 className="admin-title">Hồ sơ của: {user.username}</h1>
 
-      <div className="info-card">
-        <h2 className="info-card-title">Username</h2>
-        <p className="info-card-text">{user.username}</p>
-      </div>
-
-      <div className="info-card">
-        <h2 className="info-card-title">Role</h2>
-        <p className="info-card-text">{user.role}</p>
+      <div style={{ marginTop: '1rem', lineHeight: 1.6 }}>
+        <p><b>Họ và tên:</b> {user.full_name || '-'}</p>
+        <p><b>Email:</b> {user.email || '-'}</p>
+        <p><b>Role:</b> {user.role}</p>
+        <p><b>ID:</b> {user.id}</p>
       </div>
     </div>
   );
