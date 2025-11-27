@@ -1,52 +1,64 @@
+// app/signin/route.js
 import { NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { dbQuery } from '@/lib/db';
 import { verifyPassword, signToken } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
 export async function POST(req) {
   try {
-    const { username, password } = await req.json();
+    const body = await req.json();
+    const { username, password } = body || {};
 
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Vui lòng nhập đầy đủ username và password' },
+        { error: 'Vui lòng nhập username và password' },
         { status: 400 }
       );
     }
 
-    const db = await getDb();
-    const userRow = await db.get(
-      'SELECT id, username, password_hash, role FROM users WHERE username = ?',
-      username
+    const usernameNorm = username.trim().toLowerCase();
+
+    // Tìm user
+    const resUser = await dbQuery(
+      `SELECT id, username, password_hash, role, full_name, email, created_at
+       FROM users
+       WHERE username = $1`,
+      [usernameNorm]
     );
 
-    if (!userRow) {
+    if (resUser.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Tài khoản không tồn tại' },
-        { status: 400 }
+        { error: 'Sai username hoặc password' },
+        { status: 401 }
       );
     }
 
-    const isValid = await verifyPassword(password, userRow.password_hash);
-    if (!isValid) {
+    const user = resUser.rows[0];
+
+    const ok = await verifyPassword(password, user.password_hash);
+    if (!ok) {
       return NextResponse.json(
-        { error: 'Sai mật khẩu' },
-        { status: 400 }
+        { error: 'Sai username hoặc password' },
+        { status: 401 }
       );
     }
 
-    const user = {
-      id: userRow.id,
-      username: userRow.username,
-      role: userRow.role,
-    };
+    const token = signToken({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    });
 
-    const token = signToken(user);
+    const { password_hash, ...safeUser } = user;
 
-    return NextResponse.json({ user, token });
+    return NextResponse.json({
+      success: true,
+      token,
+      user: safeUser,
+    });
   } catch (err) {
-    console.error('Signin error:', err);
+    console.error('SIGNIN ERROR:', err);
     return NextResponse.json(
       { error: 'Lỗi server khi đăng nhập' },
       { status: 500 }

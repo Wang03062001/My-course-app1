@@ -1,212 +1,156 @@
 // app/api/profile/route.js
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
-import { getDb } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { dbQuery } from '@/lib/db';
+import { verifyToken, verifyPassword, hashPassword } from '@/lib/auth';
 
-// Lấy token từ header Authorization hoặc cookie "token"
-function extractToken(request) {
-  const authHeader = request.headers.get('authorization') || '';
-  if (authHeader.toLowerCase().startsWith('bearer ')) {
-    const t = authHeader.slice(7).trim();
-    if (t) return t;
+export const runtime = 'nodejs';
+
+// Lấy payload user từ token
+function getUserFromReq(req) {
+  const auth = req.headers.get('authorization') || '';
+  let token = null;
+
+  if (auth.toLowerCase().startsWith('bearer ')) {
+    token = auth.slice(7).trim();
   }
-
-  const cookie = request.headers.get('cookie') || '';
-  const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
-  if (match) {
-    try {
-      return decodeURIComponent(match[1]);
-    } catch {
-      return match[1];
-    }
-  }
-
-  return null;
-}
-
-// Lấy user hiện tại từ token + DB
-async function getCurrentUser(request, existingDb = null) {
-  const token = extractToken(request);
   if (!token) return null;
 
-  const payload = verifyToken(token);
-  if (!payload || !payload.id) return null;
-
-  const db = existingDb || (await getDb());
-
-  const user = await new Promise((resolve, reject) => {
-    db.get(
-      'SELECT id, username, role, email, full_name, created_at, password_hash FROM users WHERE id = ?',
-      [payload.id],
-      (err, row) => (err ? reject(err) : resolve(row || null))
-    );
-  });
-
-  return user;
+  const decoded = verifyToken(token);
+  if (!decoded) return null;
+  return decoded; // { id, username, role }
 }
 
-/* ---------------------- GET /api/profile ---------------------- */
-export async function GET(request) {
+// GET /api/profile
+export async function GET(req) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
+    const payload = getUserFromReq(req);
+    if (!payload) {
       return NextResponse.json(
-        { success: false, error: 'Chưa đăng nhập' },
+        { error: 'Chưa đăng nhập' },
         { status: 401 }
+      );
+    }
+
+    const resUser = await dbQuery(
+      `SELECT id, username, role, full_name, email, created_at
+       FROM users
+       WHERE id = $1`,
+      [payload.id]
+    );
+
+    if (resUser.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'User không tồn tại' },
+        { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      profile: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        email: user.email,
-        full_name: user.full_name,
-        created_at: user.created_at,
-      },
+      user: resUser.rows[0],
     });
   } catch (err) {
-    console.error('GET /api/profile error:', err);
-    return NextResponse.json(
-      { success: false, error: 'Lỗi server' },
-      { status: 500 }
-    );
+    console.error('PROFILE GET ERROR:', err);
+    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
   }
 }
 
-/* ---------------------- PUT /api/profile ---------------------- */
-/**
- * Xử lý:
- *  - { full_name } hoặc { name }         -> đổi họ tên
- *  - { email }                           -> đổi email
- *  - { oldPassword/currentPassword, newPassword } -> đổi mật khẩu
- */
-export async function PUT(request) {
+// PUT /api/profile
+// body: { full_name?, email?, currentPassword?, newPassword? }
+export async function PUT(req) {
   try {
-    const body = await request.json();
-    const {
-      full_name,
-      name,
-      email,
-      oldPassword,
-      currentPassword,
-      newPassword,
-    } = body || {};
-
-    const db = await getDb();
-    const user = await getCurrentUser(request, db);
-
-    if (!user) {
+    const payload = getUserFromReq(req);
+    if (!payload) {
       return NextResponse.json(
-        { success: false, error: 'Chưa đăng nhập' },
+        { error: 'Chưa đăng nhập' },
         { status: 401 }
       );
     }
 
-    const newFullName =
-      typeof full_name === 'string' && full_name.trim()
-        ? full_name.trim()
-        : typeof name === 'string' && name.trim()
-        ? name.trim()
-        : null;
+    const body = await req.json();
+    const { full_name, email, currentPassword, newPassword } = body || {};
 
-    const newEmail =
-      typeof email === 'string' && email.trim() ? email.trim() : null;
+    // Lấy user hiện tại
+    const resUser = await dbQuery(
+      `SELECT id, username, password_hash, role, full_name, email, created_at
+       FROM users
+       WHERE id = $1`,
+      [payload.id]
+    );
 
-    const hasNameOrEmailUpdate = newFullName || newEmail;
-    const hasPasswordUpdate = !!newPassword;
-
-    if (!hasNameOrEmailUpdate && !hasPasswordUpdate) {
+    if (resUser.rows.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Không có dữ liệu để cập nhật' },
-        { status: 400 }
+        { error: 'User không tồn tại' },
+        { status: 404 }
       );
     }
 
-    // 1) Cập nhật họ tên / email
-    if (hasNameOrEmailUpdate) {
-      const updates = [];
-      const params = [];
+    const user = resUser.rows[0];
 
-      if (newFullName) {
-        updates.push('full_name = ?');
-        params.push(newFullName);
-      }
+    const updates = [];
+    const params = [];
+    let i = 1;
 
-      if (newEmail) {
-        updates.push('email = ?');
-        params.push(newEmail);
-      }
-
-      params.push(user.id);
-
-      await new Promise((resolve, reject) => {
-        db.run(
-          `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
-          params,
-          (err) => (err ? reject(err) : resolve())
-        );
-      });
+    if (typeof full_name === 'string') {
+      updates.push(`full_name = $${i++}`);
+      params.push(full_name.trim());
     }
 
-    // 2) Đổi mật khẩu (nếu có yêu cầu)
-    if (hasPasswordUpdate) {
-      const currentPass = oldPassword || currentPassword || null;
+    if (typeof email === 'string') {
+      updates.push(`email = $${i++}`);
+      params.push(email.trim().toLowerCase());
+    }
 
-      if (!currentPass) {
+    if (newPassword) {
+      if (!currentPassword) {
         return NextResponse.json(
-          { success: false, error: 'Vui lòng nhập mật khẩu hiện tại' },
+          { error: 'Vui lòng nhập mật khẩu hiện tại' },
           { status: 400 }
         );
       }
 
-      const ok = await bcrypt.compare(currentPass, user.password_hash);
+      const ok = await verifyPassword(currentPassword, user.password_hash);
       if (!ok) {
         return NextResponse.json(
-          { success: false, error: 'Mật khẩu hiện tại không đúng' },
+          { error: 'Mật khẩu hiện tại không đúng' },
           { status: 400 }
         );
       }
 
-      const newHash = await bcrypt.hash(newPassword, 10);
+      const newHash = await hashPassword(newPassword);
+      updates.push(`password_hash = $${i++}`);
+      params.push(newHash);
+    }
 
-      await new Promise((resolve, reject) => {
-        db.run(
-          'UPDATE users SET password_hash = ? WHERE id = ?',
-          [newHash, user.id],
-          (err) => (err ? reject(err) : resolve())
-        );
+    if (updates.length === 0) {
+      return NextResponse.json({
+        success: true,
+        message: 'Không có gì để cập nhật',
       });
     }
 
-    // 3) Lấy lại user sau khi cập nhật
-    const updated = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id, username, role, email, full_name, created_at FROM users WHERE id = ?',
-        [user.id],
-        (err, row) => (err ? reject(err) : resolve(row))
-      );
-    });
+    params.push(user.id);
+
+    await dbQuery(
+      `UPDATE users
+       SET ${updates.join(', ')}
+       WHERE id = $${i}`,
+      params
+    );
+
+    const resUpdated = await dbQuery(
+      `SELECT id, username, role, full_name, email, created_at
+       FROM users
+       WHERE id = $1`,
+      [user.id]
+    );
 
     return NextResponse.json({
       success: true,
-      profile: {
-        id: updated.id,
-        username: updated.username,
-        role: updated.role,
-        email: updated.email,
-        full_name: updated.full_name,
-        created_at: updated.created_at,
-      },
+      user: resUpdated.rows[0],
     });
   } catch (err) {
-    console.error('PUT /api/profile error:', err);
-    return NextResponse.json(
-      { success: false, error: 'Lỗi server' },
-      { status: 500 }
-    );
+    console.error('PROFILE PUT ERROR:', err);
+    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
   }
 }

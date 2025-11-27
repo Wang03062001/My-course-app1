@@ -1,12 +1,9 @@
 // app/api/auth/signin/route.js
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { getDb } from '@/lib/db';
+import { dbQuery } from '@/lib/db';
+import { verifyPassword, signToken } from '@/lib/auth';
 
-
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
-const TOKEN_EXPIRES = 60 * 60 * 24 * 7; // 7 ngày
+export const runtime = 'nodejs';
 
 export async function POST(req) {
   try {
@@ -15,72 +12,64 @@ export async function POST(req) {
 
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Thiếu username hoặc password' },
+        { error: 'Vui lòng nhập username và password' },
         { status: 400 }
       );
     }
 
-    const db = await getDb();
+    const usernameNorm = username.trim().toLowerCase();
 
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        // lấy luôn full_name nếu có
-        'SELECT id, username, password_hash, role, email, created_at, full_name FROM users WHERE username = ?',
-        [username.trim().toLowerCase()],
-        (err, row) => (err ? reject(err) : resolve(row))
-      );
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Sai username hoặc password' },
-        { status: 400 }
-      );
-    }
-
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return NextResponse.json(
-        { error: 'Sai username hoặc password' },
-        { status: 400 }
-      );
-    }
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-      JWT_SECRET,
-      { expiresIn: TOKEN_EXPIRES }
+    // Lấy user từ Postgres
+    const resUser = await dbQuery(
+      `SELECT id,
+              username,
+              password_hash,
+              role,
+              full_name,
+              email,
+              created_at
+       FROM users
+       WHERE username = $1`,
+      [usernameNorm]
     );
 
-    // 🔴 TRẢ VỀ TOKEN CHO useAuth
-    const res = NextResponse.json({
+    if (resUser.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Sai username hoặc password' },
+        { status: 401 }
+      );
+    }
+
+    const user = resUser.rows[0];
+
+    // So sánh mật khẩu
+    const ok = await verifyPassword(password, user.password_hash);
+    if (!ok) {
+      return NextResponse.json(
+        { error: 'Sai username hoặc password' },
+        { status: 401 }
+      );
+    }
+
+    // Tạo JWT
+    const token = signToken({
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    });
+
+    const { password_hash, ...safeUser } = user;
+
+    return NextResponse.json({
       success: true,
       token,
-      user: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        email: user.email,
-        full_name: user.full_name,
-        created_at: user.created_at,
-      },
+      user: safeUser,
     });
-
-    // Cookie JWT (tuỳ bạn có dùng hay không, cứ giữ)
-    res.cookies.set('token', token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: TOKEN_EXPIRES,
-    });
-
-    return res;
   } catch (err) {
     console.error('SIGNIN ERROR:', err);
-    return NextResponse.json({ error: 'Lỗi server' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Lỗi server khi đăng nhập' },
+      { status: 500 }
+    );
   }
 }
