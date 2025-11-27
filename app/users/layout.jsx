@@ -1,12 +1,12 @@
 'use client';
 
 import '../../styles/globals.css';
-import SidebarUser from '../../components/SidebarUser';
+import Sidebar from '../../components/Sidebar';
 
 export default function UserLayout({ children }) {
   return (
     <div className="admin-layout">
-      <SidebarUser />
+      <Sidebar />
 
       <main className="admin-main">
         {children}

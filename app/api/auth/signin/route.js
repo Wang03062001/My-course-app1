@@ -2,7 +2,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { getDb } from '../../../../lib/db';
+import { getDb } from '@/lib/db';
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 const TOKEN_EXPIRES = 60 * 60 * 24 * 7; // 7 ngày
