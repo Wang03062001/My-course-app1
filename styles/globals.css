@@ -914,3 +914,143 @@ html[data-theme='dark'] .theme-toggle:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(182, 218, 251, 0.45);
 }
+/* ===== Reset & base cho toàn site ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* Không cho trang bị tràn ngang trên mobile */
+body {
+  overflow-x: hidden;
+  background-color: #f3f4f6;
+}
+
+/* Hình ảnh, video… tự co theo chiều rộng màn hình */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===== Layout chung ===== */
+
+/* Nếu anh có dùng class admin-layout (sidebar + nội dung) */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar (đổi tên class nếu anh dùng tên khác) */
+.sidebar,
+.sidebar-admin,
+.sidebar-user {
+  flex-shrink: 0;
+}
+
+/* Nội dung chính bên phải */
+.admin-main {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Card chung (dashboard, quản lý users, v.v.) */
+.admin-card {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Header card (tiêu đề + nút "Làm mới", v.v.) */
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Bảng có nhiều cột: bọc bằng admin-table-wrapper trong JSX */
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: auto; /* cho kéo ngang trên mobile */
+}
+
+/* Bản thân table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* nếu màn hình nhỏ hơn thì xuất hiện scroll ngang */
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap; /* tránh chữ xuống dòng lung tung */
+}
+
+/* ===== Responsive: dưới 768px (tablet, mobile ngang) ===== */
+@media (max-width: 768px) {
+  /* Sidebar + nội dung xếp dọc */
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .sidebar,
+  .sidebar-admin,
+  .sidebar-user {
+    width: 100%;
+    position: static;
+    height: auto;
+  }
+
+  .admin-main {
+    padding: 0.75rem;
+  }
+
+  .admin-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ===== Mobile nhỏ (dưới 480px) ===== */
+@media (max-width: 480px) {
+  .admin-card {
+    padding: 0.75rem;
+  }
+
+  .admin-title {
+    font-size: 1rem;
+  }
+
+  .btn.btn-sm {
+    font-size: 0.75rem;
+    padding-inline: 0.5rem;
+    height: 2rem;
+  }
+
+  /* Nếu có popup dùng width cố định lớn, ép lại cho vừa màn hình */
+  .modal-box {
+    max-width: 95vw;
+  }
+}
