@@ -10,7 +10,6 @@ export default function Navbar() {
   const pathname = usePathname();
 
   // ================== STATE ==================
-  // (Đây chính là phần "khai báo state" bạn hỏi)
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({
     users: [],
@@ -24,7 +23,7 @@ export default function Navbar() {
 
   const searchWrapperRef = useRef(null);
 
-  // Khi đổi route (URL) thì reset ô tìm kiếm + kết quả
+  // Reset search khi đổi route
   useEffect(() => {
     setQuery('');
     setResults({ users: [], courses: [], lessons: [] });
@@ -126,7 +125,8 @@ export default function Navbar() {
 
   return (
     <header className="navbar-floating">
-      <div className="navbar-floating-inner">
+      {/* THÊM main-navbar vào đây để CSS flex dùng chung */}
+      <div className="navbar-floating-inner main-navbar">
         {/* TRÁI: Trang chủ + Dashboard */}
         <div className="navbar-left">
           <Link href="/" className="navbar-nav-link">
@@ -279,8 +279,8 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* NÚT ĐỔI THEME */}
-        <div className="navbar-theme-toggle-wrapper">
+        {/* PHẢI: đổi theme + user + logout */}
+        <div className="navbar-right">
           <button
             type="button"
             className="theme-toggle"
@@ -323,10 +323,7 @@ export default function Navbar() {
               </svg>
             )}
           </button>
-        </div>
 
-        {/* PHẢI: user + logout / guest */}
-        <div className="navbar-right">
           {user ? (
             <>
               <span className="navbar-user-name">{user.username}</span>

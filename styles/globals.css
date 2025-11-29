@@ -1,7 +1,5 @@
 /* =========================================================
    THEME VARIABLES
-   - Light mode (mặc định)
-   - Dark mode qua html[data-theme="dark"]
 ========================================================= */
 
 /* Light – tone trắng cũ */
@@ -118,17 +116,35 @@ html[data-theme='dark'] .navbar-search-empty {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+body {
   background: var(--bg-main);
   color: var(--text-main);
-  font-family: system-ui, -apple-system, 'SF Pro', Segoe UI, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* không cho tràn ngang */
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Hình ảnh, video tự co */
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
 }
 
 .app-main {
@@ -172,6 +188,16 @@ a {
   animation: navbarFade 0.5s ease-out;
 }
 
+/* class phụ để responsive dễ */
+.main-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 @keyframes navbarFade {
   from { opacity: 0; transform: translateY(-20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -192,9 +218,9 @@ a {
   border-radius: 999px;
   white-space: nowrap;
 
-  background: rgba(255, 255, 255, 0.9);              /* nền trắng nổi trên thanh glass */
-  border: 1px solid rgba(148, 163, 184, 0.4);        /* viền nhẹ */
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);     /* đổ bóng nhẹ */
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 
   transition:
     background-color 0.2s ease,
@@ -204,16 +230,10 @@ a {
 }
 
 .navbar-nav-link:hover {
-  background: var(--accent);                         /* nền xanh */
-  color: #ffffff;                                   /* chữ trắng */
+  background: var(--accent);
+  color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
-}
-
-
-.navbar-nav-link:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
 }
 
 /* GIỮA: Search */
@@ -221,9 +241,8 @@ a {
   flex: 1;
   max-width: 520px;
   min-width: 140px;
-  position: relative;          /* 👈 thêm: làm khung để đặt dropdown tuyệt đối */
+  position: relative;          /* để dropdown position absolute */
 }
-
 
 .navbar-search {
   width: 100%;
@@ -257,48 +276,13 @@ a {
   color: #9ca3af;
 }
 
-/* PHẢI: user + logout / guest */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-
-.navbar-user-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.navbar-logout {
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: transparent;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: 0.2s;
-  white-space: nowrap;
-}
-
-.navbar-logout:hover {
-  background: rgba(148, 163, 184, 0.08);
-}
-
-.nav-guest-text {
-  font-size: 0.85rem;
-  color: var(--text-subtle);
-}
-
 /* Dropdown kết quả tìm kiếm */
 .navbar-search-results {
-  position: absolute;                 /* 👈 nổi lên, không đẩy navbar */
-  top: calc(100% + 8px);              /* ngay dưới ô search, cách 8px */
+  position: absolute;
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
-  margin-top: 0;                      /* bỏ margin-top vì đã dùng top */
-  z-index: 300;                       /* luôn nổi trên nội dung phía dưới */
+  z-index: 300;
 
   background: rgba(255, 255, 255, 0.98);
   border-radius: 18px;
@@ -309,7 +293,6 @@ a {
   overflow-y: auto;
   font-size: 0.82rem;
 }
-
 
 .navbar-search-item {
   padding: 0.35rem 0.7rem;
@@ -371,48 +354,41 @@ a {
   color: #b91c1c;
 }
 
-/* Responsive cho navbar */
-@media (max-width: 768px) {
-  .navbar-floating-inner {
-    width: 96%;
-    padding-inline: 1rem;
-    gap: 0.6rem;
-  }
-
-  .navbar-left {
-    gap: 0.4rem;
-  }
-
-  .navbar-nav-link {
-    padding-inline: 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  .navbar-user-name {
-    display: none;
-  }
-
-  .navbar-logout {
-    padding-inline: 0.7rem;
-  }
-
-  .navbar-center {
-    max-width: 100%;
-  }
-
-  .nav-guest-text {
-    display: none;
-  }
-}
-
-/* NÚT ĐỔI THEME TRÊN NAVBAR */
-.navbar-theme-toggle-wrapper {
+/* PHẢI: theme + user + logout */
+.navbar-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-left: 0.5rem;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
+.navbar-user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.navbar-logout {
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.navbar-logout:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.nav-guest-text {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+}
+
+/* NÚT ĐỔI THEME */
 .theme-toggle {
   width: 34px;
   height: 34px;
@@ -439,7 +415,6 @@ a {
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
 
-/* Dark mode cho nút toggle */
 html[data-theme='dark'] .theme-toggle {
   background: rgba(15, 23, 42, 0.9);
   border-color: rgba(148, 163, 184, 0.7);
@@ -451,8 +426,66 @@ html[data-theme='dark'] .theme-toggle:hover {
   border-color: rgba(248, 250, 252, 0.7);
 }
 
+/* ===== Responsive NAVBAR ===== */
+@media (max-width: 900px) {
+  .navbar-floating-inner {
+    height: auto;
+    padding-inline: 1rem;
+    padding-block: 0.6rem;
+  }
+
+  .main-navbar {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .navbar-left,
+  .navbar-center,
+  .navbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .navbar-left { order: 1; }
+  .navbar-center { order: 2; }
+  .navbar-right { order: 3; }
+
+  .navbar-search {
+    width: 100%;
+  }
+
+  .navbar-nav-link {
+    padding-inline: 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .navbar-user-name {
+    display: none;
+  }
+
+  .nav-guest-text {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-floating-inner {
+    padding-inline: 0.6rem;
+  }
+
+  .navbar-left {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .navbar-right {
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+}
+
 /* =========================================================
-   SIDEBAR — APPLE GLASS WHITE
+   SIDEBAR
 ========================================================= */
 
 .admin-sidebar {
@@ -527,7 +560,41 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 /* =========================================================
-   CARD — APPLE SOFT ROUNDED
+   LAYOUT: ADMIN + DASHBOARD
+========================================================= */
+
+.admin-layout {
+  width: 100%;
+  max-width: 100%;
+  margin: 1.5rem 0 2rem;
+  padding: 0 1.5rem 0 0;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.admin-main {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+    padding: 0 0.75rem;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+  }
+
+  .admin-main {
+    padding: 0;
+  }
+}
+
+/* =========================================================
+   CARD — GLASS
 ========================================================= */
 
 .glass-card,
@@ -547,6 +614,8 @@ html[data-theme='dark'] .theme-toggle:hover {
 
   animation: appleCardFade .5s ease-out;
   transition: 0.35s;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 @keyframes appleCardFade {
@@ -589,12 +658,20 @@ html[data-theme='dark'] .theme-toggle:hover {
   opacity: 0.4;
 }
 
+/* Card header cho admin */
+.admin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 /* =========================================================
-   TABLES
+   TABLES (Users, Lessons...)
 ========================================================= */
 
-.table-wrapper {
-  overflow-x: auto;
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: hidden; /* không cần kéo ngang */
   margin-top: 0.5rem;
 }
 
@@ -606,14 +683,58 @@ html[data-theme='dark'] .theme-toggle:hover {
 
 .admin-table th,
 .admin-table td {
-  padding: 0.6rem 0.8rem;
+  padding: 0.4rem 0.6rem;
   border-bottom: 1px solid rgba(148,163,184,0.4);
+  white-space: normal;        /* cho phép xuống dòng */
+  word-break: break-word;     /* email / text dài sẽ bẻ dòng */
 }
 
 .admin-table th {
   color: var(--text-subtle);
   font-weight: 600;
   font-size: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .admin-table th,
+  .admin-table td {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.4rem;
+  }
+}
+
+/* Nút nhỏ trong bảng */
+.btn-sm {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.8rem;
+  border-radius: 12px;
+}
+
+.admin-table .btn-primary.btn-sm,
+.admin-table .btn-outline.btn-sm {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.8rem;
+  border-radius: 12px;
+}
+
+.admin-table .btn-outline.btn-sm {
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  color: var(--text-main);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-table .btn-outline.btn-sm:hover {
+  background-color: #fe3030;
+  border-color: #f53434;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(182, 218, 251, 0.45);
 }
 
 /* =========================================================
@@ -654,47 +775,9 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 /* =========================================================
-   AUTH BOX & LAYOUT
+   AUTH BOX & MODAL
 ========================================================= */
 
-.auth-box {
-  width: 280px;
-  padding: 1.2rem;
-
-  border-radius: 18px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(20px);
-
-  animation: fadeAuth .25s ease-out;
-}
-
-@keyframes fadeAuth {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Layout cho Admin + Dashboard */
-.admin-layout {
-  width: 100%;
-  max-width: 100%;
-  margin: 1.5rem 0 2rem;     /* bỏ auto 2 bên, không căn giữa */
-  padding: 0 1.5rem 0 0;     /* bỏ padding bên trái, giữ bên phải nếu muốn */
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 1.5rem;
-  align-items: flex-start;
-}
-
-
-.admin-main {
-  min-width: 0;
-}
-
-/* Hộp signin/signup nằm bên phải, ngay dưới navbar */
-/* Hộp signin/signup nằm bên trái, ngay dưới navbar */
 .auth-box-wrapper {
   width: 100%;
   max-width: 100%;
@@ -702,10 +785,9 @@ html[data-theme='dark'] .theme-toggle:hover {
   margin-top: 0.75rem;
   padding: 0;
   display: flex;
-  justify-content: flex-end; /* đẩy box sang trái */
+  justify-content: flex-end;
 }
 
-/* Hộp AuthBox */
 .auth-box {
   width: 280px;
   padding: 1.2rem;
@@ -718,12 +800,16 @@ html[data-theme='dark'] .theme-toggle:hover {
   backdrop-filter: blur(20px);
 
   animation: fadeAuth .25s ease-out;
-
-  margin-right: 5px; /* cách mép trái 5px */
+  margin-right: 5px;
 }
 
+@keyframes fadeAuth {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-/* Style nhỏ cho AuthBox */
+/* ... (giữ nguyên các class auth nhỏ, modal...) */
+
 .auth-tabs-small {
   display: flex;
   background: rgba(148, 163, 184, 0.15);
@@ -817,7 +903,7 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 .modal-box {
-  min-width: 380px;
+  min-width: 280px;
   max-width: 420px;
   padding: 1.2rem 1.4rem;
   border-radius: 18px;
@@ -826,11 +912,16 @@ html[data-theme='dark'] .theme-toggle:hover {
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.25);
 }
 
+@media (max-width: 480px) {
+  .modal-box {
+    max-width: 95vw;
+  }
+}
+
 .modal-title {
   margin: 0 0 0.4rem;
   font-size: 1rem;
   font-weight: 600;
-  
 }
 
 .modal-text {
@@ -843,320 +934,4 @@ html[data-theme='dark'] .theme-toggle:hover {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
-}
-/* Nút "Hủy" trong popup – có viền xám, hover đỏ */
-.modal-actions .btn-ghost.btn-sm {
-  border-radius: 999px;
-  padding-inline: 1.2rem;
-  border: 1px solid rgba(148, 163, 184, 0.6);  /* 👈 viền xám hiện lại */
-  background-color: transparent;
-  color: var(--text-subtle);
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    color 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.modal-actions .btn-ghost.btn-sm:hover {
-  background-color: #fa6464 !important;       /* nền đỏ */
-  border-color: #ff7474 !important;           /* viền đỏ */
-  color: #ffffff !important;                  /* chữ trắng */
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(239, 68, 68, 0.45);
-}
-
-
-.modal-actions .btn-ghost.btn-sm:hover {
-  background-color: rgba(148, 163, 184, 0.12); /* nền xám nhạt kiểu glass */
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
-  color: #111827; /* chữ đậm hơn một chút */
-}
-/* ===== Nút Lưu / Xóa trong bảng quản lý users ===== */
-
-/* Kích thước chung cho nút nhỏ */
-.btn-sm {
-  padding: 0.45rem 1.1rem;
-  font-size: 0.8rem;
-  border-radius: 12px;
-}
-
-/* Đảm bảo cả "Sửa" (btn-primary) và "Xóa" (btn-outline) cùng kích thước */
-.admin-table .btn-primary.btn-sm,
-.admin-table .btn-outline.btn-sm {
-  padding: 0.45rem 1.1rem;
-  font-size: 0.8rem;
-  border-radius: 12px;
-}
-
-/* Trạng thái bình thường của nút "Xóa" trong bảng users */
-.admin-table .btn-outline.btn-sm {
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: transparent;
-  color: var(--text-main);
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-/* Hover nút "Xóa":
-   - hiệu ứng nổi giống "Sửa"
-   - đổi nền sang đỏ, chữ trắng */
-.admin-table .btn-outline.btn-sm:hover {
-  background-color: #fe3030;                 /* đỏ */
-  border-color: #f53434;
-  color: #ffffff;                            /* chữ trắng */
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(182, 218, 251, 0.45);
-}
-/* ===== Reset & base cho toàn site ===== */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100%;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-}
-
-/* Không cho trang bị tràn ngang trên mobile */
-body {
-  overflow-x: hidden;
-  background-color: #f3f4f6;
-}
-
-/* Hình ảnh, video… tự co theo chiều rộng màn hình */
-img,
-video,
-canvas,
-svg {
-  max-width: 100%;
-  height: auto;
-}
-
-/* ===== Layout chung ===== */
-
-/* Nếu anh có dùng class admin-layout (sidebar + nội dung) */
-.admin-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar (đổi tên class nếu anh dùng tên khác) */
-.sidebar,
-.sidebar-admin,
-.sidebar-user {
-  flex-shrink: 0;
-}
-
-/* Nội dung chính bên phải */
-.admin-main {
-  flex: 1;
-  padding: 1rem 1.25rem;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-/* Card chung (dashboard, quản lý users, v.v.) */
-.admin-card {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
-  max-width: 100%;
-  overflow: hidden;
-}
-
-/* Header card (tiêu đề + nút "Làm mới", v.v.) */
-.admin-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Bảng có nhiều cột: bọc bằng admin-table-wrapper trong JSX */
-.admin-table-wrapper {
-  width: 100%;
-  overflow-x: auto; /* cho kéo ngang trên mobile */
-}
-
-/* Bản thân table */
-/* Bảng dữ liệu (users, lessons...) */
-.admin-table-wrapper {
-  width: 100%;
-  overflow-x: hidden; /* không cần scroll ngang nữa */
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* Ô bảng cho phép xuống dòng, co giãn theo màn hình */
-.admin-table th,
-.admin-table td {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.85rem;
-  border-bottom: 1px solid #e5e7eb;
-  white-space: normal;         /* cho xuống dòng */
-  word-break: break-word;      /* nếu email dài thì bẻ dòng */
-}
-
-/* Có thể thu nhỏ font thêm chút trên màn hình nhỏ */
-@media (max-width: 900px) {
-  .admin-table th,
-  .admin-table td {
-    font-size: 0.78rem;
-    padding: 0.35rem 0.4rem;
-  }
-}
-
-
-/* ===== Responsive: dưới 768px (tablet, mobile ngang) ===== */
-@media (max-width: 768px) {
-  /* Sidebar + nội dung xếp dọc */
-  .admin-layout {
-    flex-direction: column;
-  }
-
-  .sidebar,
-  .sidebar-admin,
-  .sidebar-user {
-    width: 100%;
-    position: static;
-    height: auto;
-  }
-
-  .admin-main {
-    padding: 0.75rem;
-  }
-
-  .admin-card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-}
-
-/* ===== Mobile nhỏ (dưới 480px) ===== */
-@media (max-width: 480px) {
-  .admin-card {
-    padding: 0.75rem;
-  }
-
-  .admin-title {
-    font-size: 1rem;
-  }
-
-  .btn.btn-sm {
-    font-size: 0.75rem;
-    padding-inline: 0.5rem;
-    height: 2rem;
-  }
-
-  /* Nếu có popup dùng width cố định lớn, ép lại cho vừa màn hình */
-  .modal-box {
-    max-width: 95vw;
-  }
-}
-
-/* ===== NAVBAR CHUNG ===== */
-.main-navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Cho phép các item tự xuống hàng nếu thiếu chỗ */
-.main-navbar {
-  flex-wrap: nowrap;
-}
-
-/* Nếu bên trong bạn có 3 vùng: trái / giữa / phải, đặt class cho chúng:
-   .navbar-left, .navbar-center, .navbar-right
-   (nếu chưa có, có thể bọc lại cho đẹp hơn sau)
-*/
-.navbar-left,
-.navbar-center,
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Ô tìm kiếm nên chiếm linh hoạt */
-.navbar-search {
-  flex: 1 1 auto;
-}
-
-/* Input search full chiều ngang vùng search */
-.navbar-search input {
-  width: 100%;
-  max-width: 100%;
-}
-
-/* ===== Màn hình nhỏ (tablet + mobile) ===== */
-@media (max-width: 900px) {
-  .main-navbar {
-    flex-wrap: wrap;          /* cho phép xuống hàng */
-    justify-content: flex-start;
-  }
-
-  .navbar-left,
-  .navbar-center,
-  .navbar-right {
-    width: 100%;              /* mỗi vùng chiếm full width */
-    justify-content: space-between;
-  }
-
-  /* Ô search nằm một hàng riêng giữa */
-  .navbar-center {
-    order: 2;
-  }
-
-  .navbar-left {
-    order: 1;
-  }
-
-  .navbar-right {
-    order: 3;
-  }
-
-  .navbar-search {
-    width: 100%;
-  }
-}
-
-/* Mobile rất nhỏ */
-@media (max-width: 480px) {
-  .main-navbar {
-    padding-inline: 0.5rem;
-    gap: 0.5rem;
-  }
-
-  .navbar-left {
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .navbar-right {
-    justify-content: flex-end;
-    gap: 0.35rem;
-  }
 }
