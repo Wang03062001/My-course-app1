@@ -993,19 +993,36 @@ svg {
 }
 
 /* Bản thân table */
+/* Bảng dữ liệu (users, lessons...) */
+.admin-table-wrapper {
+  width: 100%;
+  overflow-x: hidden; /* không cần scroll ngang nữa */
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px; /* nếu màn hình nhỏ hơn thì xuất hiện scroll ngang */
 }
 
+/* Ô bảng cho phép xuống dòng, co giãn theo màn hình */
 .admin-table th,
 .admin-table td {
   padding: 0.4rem 0.6rem;
   font-size: 0.85rem;
   border-bottom: 1px solid #e5e7eb;
-  white-space: nowrap; /* tránh chữ xuống dòng lung tung */
+  white-space: normal;         /* cho xuống dòng */
+  word-break: break-word;      /* nếu email dài thì bẻ dòng */
 }
+
+/* Có thể thu nhỏ font thêm chút trên màn hình nhỏ */
+@media (max-width: 900px) {
+  .admin-table th,
+  .admin-table td {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.4rem;
+  }
+}
+
 
 /* ===== Responsive: dưới 768px (tablet, mobile ngang) ===== */
 @media (max-width: 768px) {
@@ -1052,5 +1069,94 @@ svg {
   /* Nếu có popup dùng width cố định lớn, ép lại cho vừa màn hình */
   .modal-box {
     max-width: 95vw;
+  }
+}
+
+/* ===== NAVBAR CHUNG ===== */
+.main-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Cho phép các item tự xuống hàng nếu thiếu chỗ */
+.main-navbar {
+  flex-wrap: nowrap;
+}
+
+/* Nếu bên trong bạn có 3 vùng: trái / giữa / phải, đặt class cho chúng:
+   .navbar-left, .navbar-center, .navbar-right
+   (nếu chưa có, có thể bọc lại cho đẹp hơn sau)
+*/
+.navbar-left,
+.navbar-center,
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Ô tìm kiếm nên chiếm linh hoạt */
+.navbar-search {
+  flex: 1 1 auto;
+}
+
+/* Input search full chiều ngang vùng search */
+.navbar-search input {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ===== Màn hình nhỏ (tablet + mobile) ===== */
+@media (max-width: 900px) {
+  .main-navbar {
+    flex-wrap: wrap;          /* cho phép xuống hàng */
+    justify-content: flex-start;
+  }
+
+  .navbar-left,
+  .navbar-center,
+  .navbar-right {
+    width: 100%;              /* mỗi vùng chiếm full width */
+    justify-content: space-between;
+  }
+
+  /* Ô search nằm một hàng riêng giữa */
+  .navbar-center {
+    order: 2;
+  }
+
+  .navbar-left {
+    order: 1;
+  }
+
+  .navbar-right {
+    order: 3;
+  }
+
+  .navbar-search {
+    width: 100%;
+  }
+}
+
+/* Mobile rất nhỏ */
+@media (max-width: 480px) {
+  .main-navbar {
+    padding-inline: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .navbar-left {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .navbar-right {
+    justify-content: flex-end;
+    gap: 0.35rem;
   }
 }
