@@ -3,15 +3,18 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { getDb } from '@/lib/db';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req) {
   try {
-    const body = await req.json().catch(() => null);
+    const body = (await req.json().catch(() => null)) || {};
 
-    const usernameRaw = body?.username ?? '';
-    const emailRaw = body?.email ?? '';
-    const codeRaw = body?.code ?? '';
+    const usernameRaw = body.username ?? '';
+    const emailRaw = body.email ?? '';
+    const codeRaw = body.code ?? '';
     // chấp nhận cả newPassword lẫn password (phòng code cũ)
-    const rawNewPassword = body?.newPassword ?? body?.password ?? '';
+    const rawNewPassword = body.newPassword ?? body.password ?? '';
 
     const username = usernameRaw.toString().trim();
     const email = emailRaw.toString().trim();
@@ -27,14 +30,12 @@ export async function POST(req) {
 
     const db = await getDb();
 
-    // Tìm user
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id, username, email FROM users WHERE LOWER(username) = ?',
-        [username.toLowerCase()],
-        (err, row) => (err ? reject(err) : resolve(row))
-      );
-    });
+    // 1. Tìm user theo username (không phân biệt hoa thường)
+    const userRes = await db.query(
+      'SELECT id, username, email FROM users WHERE LOWER(username) = LOWER($1)',
+      [username]
+    );
+    const user = userRes.rows[0];
 
     if (!user) {
       return NextResponse.json(
@@ -43,6 +44,7 @@ export async function POST(req) {
       );
     }
 
+    // 2. Kiểm tra email trùng khớp
     const dbEmail = (user.email || '').trim().toLowerCase();
     if (!dbEmail || dbEmail !== email.toLowerCase()) {
       return NextResponse.json(
@@ -51,34 +53,38 @@ export async function POST(req) {
       );
     }
 
-    // Lấy mã reset mới nhất
-    const record = await new Promise((resolve, reject) => {
-      db.get(
-        `SELECT id, code, expires_at
-         FROM password_reset_codes
-         WHERE user_id = ?
-         ORDER BY created_at DESC
-         LIMIT 1`,
-        [user.id],
-        (err, row) => (err ? reject(err) : resolve(row))
-      );
-    });
+    // 3. Lấy mã reset mới nhất của user
+    const codeRes = await db.query(
+      `SELECT id, code, expires_at
+       FROM password_reset_codes
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [user.id]
+    );
+    const record = codeRes.rows[0];
 
     if (!record) {
       return NextResponse.json(
-        { error: 'Không tìm thấy mã đặt lại mật khẩu. Hãy yêu cầu mã mới.' },
+        {
+          error:
+            'Không tìm thấy mã đặt lại mật khẩu. Hãy yêu cầu mã mới.',
+        },
         { status: 400 }
       );
     }
 
+    // 4. Kiểm tra hết hạn
     const now = Date.now();
-    if (now > Number(record.expires_at || 0)) {
+    const expiresAt = Number(record.expires_at ?? 0);
+    if (Number.isFinite(expiresAt) && now > expiresAt) {
       return NextResponse.json(
         { error: 'Mã đã hết hạn. Hãy yêu cầu mã mới.' },
         { status: 400 }
       );
     }
 
+    // 5. Kiểm tra mã đúng
     if (record.code !== code) {
       return NextResponse.json(
         { error: 'Mã xác nhận không đúng' },
@@ -86,25 +92,20 @@ export async function POST(req) {
       );
     }
 
-    // Hash mật khẩu mới
+    // 6. Hash mật khẩu mới
     const hash = await bcrypt.hash(newPassword, 10);
 
-    await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE users SET password_hash = ? WHERE id = ?',
-        [hash, user.id],
-        (err) => (err ? reject(err) : resolve())
-      );
-    });
+    // 7. Cập nhật mật khẩu user
+    await db.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [hash, user.id]
+    );
 
-    // Xoá mã đã dùng
-    await new Promise((resolve, reject) => {
-      db.run(
-        'DELETE FROM password_reset_codes WHERE user_id = ?',
-        [user.id],
-        (err) => (err ? reject(err) : resolve())
-      );
-    });
+    // 8. Xoá toàn bộ mã reset của user (tránh dùng lại)
+    await db.query(
+      'DELETE FROM password_reset_codes WHERE user_id = $1',
+      [user.id]
+    );
 
     return NextResponse.json({
       success: true,
