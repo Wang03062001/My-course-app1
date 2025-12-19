@@ -158,7 +158,7 @@ export default function Navbar() {
             <input
               className="navbar-search-input"
               type="text"
-              placeholder="Tìm user (tên, email, role), khoá học, bài học..."
+              placeholder="Tìm kiếm..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
