@@ -4,20 +4,27 @@ import { useEffect, useMemo, useState } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
-function getUserKey(user) {
-  const id = user?.id || user?.uid || user?.email;
-  return id ? String(id) : null;
+// ✅ ĐỔI PATH NÀY cho đúng dự án của bạn nếu khác
+import { supabase } from '../../lib/supabaseClient';
+
+function toCourse(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    title1: row.title1 ?? '',
+    title2: row.title2 ?? '',
+    content: row.content ?? '',
+    sections: Array.isArray(row.sections) ? row.sections : (row.sections ?? []),
+    createdAt: row.created_at ?? null,
+    updatedAt: row.updated_at ?? null,
+  };
 }
 
 export default function CoursesPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
-  const userKey = useMemo(() => getUserKey(user), [user]);
-  const storageKey = useMemo(() => {
-    if (!userKey) return null;
-    return `mycourseapp:courses:lessons:${userKey}`;
-  }, [userKey]);
+  const isLoggedIn = useMemo(() => !!user, [user]);
 
   const [items, setItems] = useState([]);
 
@@ -27,37 +34,59 @@ export default function CoursesPage() {
 
   const [title1, setTitle1] = useState('Tiêu đề 1');
   const [title2, setTitle2] = useState('Tiêu đề 2');
-  const [error, setError] = useState('');
 
+  const [error, setError] = useState('');
+  const [pageLoading, setPageLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // ✅ Load data từ Supabase theo user (RLS sẽ tự lọc theo auth.uid())
   useEffect(() => {
     if (loading) return;
 
-    if (!storageKey) {
+    if (!isLoggedIn) {
       setItems([]);
       return;
     }
 
-    try {
-      const raw = localStorage.getItem(storageKey);
-      const parsed = raw ? JSON.parse(raw) : [];
-      setItems(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setItems([]);
-    }
-  }, [loading, storageKey]);
+    let cancelled = false;
 
-  const persist = (next) => {
-    setItems(next);
-    if (!storageKey) return;
-    localStorage.setItem(storageKey, JSON.stringify(next));
-  };
+    const run = async () => {
+      setError('');
+      setPageLoading(true);
+
+      try {
+        const { data, error: dbErr } = await supabase
+          .from('courses')
+          .select('id,title1,title2,content,sections,created_at,updated_at')
+          .order('created_at', { ascending: false });
+
+        if (dbErr) throw dbErr;
+        if (cancelled) return;
+
+        const list = Array.isArray(data) ? data.map(toCourse) : [];
+        setItems(list);
+      } catch (e) {
+        if (!cancelled) {
+          setItems([]);
+          setError(e?.message || 'Không thể tải danh sách bài học từ Supabase.');
+        }
+      } finally {
+        if (!cancelled) setPageLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, isLoggedIn]);
 
   const addLabel =
     items.length === 0 ? 'Chưa có bài học. Hãy thêm bài học của bạn' : 'Thêm bài học';
 
   const openCreateModal = () => {
     setError('');
-    if (!userKey) {
+    if (!isLoggedIn) {
       setError('Bạn cần đăng nhập để tạo bài học.');
       return;
     }
@@ -69,7 +98,7 @@ export default function CoursesPage() {
 
   const openEditModal = (item) => {
     setError('');
-    if (!userKey) {
+    if (!isLoggedIn) {
       setError('Bạn cần đăng nhập để sửa bài học.');
       return;
     }
@@ -80,13 +109,14 @@ export default function CoursesPage() {
   };
 
   const closeModal = () => {
+    if (saving) return; // tránh đóng khi đang lưu
     setOpen(false);
     setEditingId(null);
     setError('');
   };
 
-  const onSubmit = () => {
-    if (!userKey) {
+  const onSubmit = async () => {
+    if (!isLoggedIn) {
       setError('Bạn cần đăng nhập để thực hiện thao tác.');
       return;
     }
@@ -99,42 +129,78 @@ export default function CoursesPage() {
       return;
     }
 
-    if (!editingId) {
-      const newItem = {
-        id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-        title1: t1,
-        title2: t2,
-        createdAt: new Date().toISOString(),
+    setSaving(true);
+    setError('');
 
-        // ✅ cấu trúc mở rộng để trang /lessons/[id] dùng được về sau
-        content: '',
-        sections: [],
-        updatedAt: null,
-      };
-      persist([newItem, ...items]);
+    try {
+      // CREATE
+      if (!editingId) {
+        const payload = {
+          title1: t1,
+          title2: t2,
+          content: '',
+          sections: [],
+          // user_id: không cần nếu DB để default auth.uid() + RLS
+        };
+
+        const { data, error: dbErr } = await supabase
+          .from('courses')
+          .insert(payload)
+          .select('id,title1,title2,content,sections,created_at,updated_at')
+          .single();
+
+        if (dbErr) throw dbErr;
+
+        const created = toCourse(data);
+        setItems((prev) => [created, ...prev]);
+        setOpen(false);
+        setEditingId(null);
+        return;
+      }
+
+      // UPDATE
+      const { data, error: dbErr } = await supabase
+        .from('courses')
+        .update({
+          title1: t1,
+          title2: t2,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingId)
+        .select('id,title1,title2,content,sections,created_at,updated_at')
+        .single();
+
+      if (dbErr) throw dbErr;
+
+      const updated = toCourse(data);
+      setItems((prev) => prev.map((it) => (it.id === editingId ? updated : it)));
       setOpen(false);
-      return;
+      setEditingId(null);
+    } catch (e) {
+      setError(e?.message || 'Thao tác thất bại. Vui lòng thử lại.');
+    } finally {
+      setSaving(false);
     }
-
-    const next = items.map((it) =>
-      it.id === editingId
-        ? { ...it, title1: t1, title2: t2, updatedAt: new Date().toISOString() }
-        : it
-    );
-    persist(next);
-    setOpen(false);
   };
 
-  const onDelete = (id) => {
-    if (!userKey) {
+  const onDelete = async (id) => {
+    if (!isLoggedIn) {
       setError('Bạn cần đăng nhập để xóa bài học.');
       return;
     }
+
     const ok = window.confirm('Bạn có chắc muốn xóa bài học này không?');
     if (!ok) return;
 
-    const next = items.filter((it) => it.id !== id);
-    persist(next);
+    setError('');
+    try {
+      const { error: dbErr } = await supabase.from('courses').delete().eq('id', id);
+      if (dbErr) throw dbErr;
+
+      setItems((prev) => prev.filter((it) => it.id !== id));
+    } catch (e) {
+      setError(e?.message || 'Xóa thất bại. Vui lòng thử lại.');
+    }
   };
 
   const goDetail = (id) => {
@@ -161,8 +227,16 @@ export default function CoursesPage() {
         </div>
       )}
 
+      {pageLoading && (
+        <div className="admin-card" style={{ marginBottom: '0.9rem' }}>
+          <p className="admin-card-text" style={{ margin: 0 }}>
+            Đang tải dữ liệu...
+          </p>
+        </div>
+      )}
+
       <div className="courses-grid">
-        {/* Các ô đã tạo: click để mở /lessons/[id] */}
+        {/* Các ô đã tạo: click để mở /courses/[id] */}
         {items.map((it) => (
           <div
             key={it.id}
@@ -223,53 +297,59 @@ export default function CoursesPage() {
 
       {/* Popup Create/Edit */}
       {open && (
-  <div className="modal-backdrop" role="dialog" aria-modal="true">
-    <div className="modal-box course-modal" onClick={(e) => e.stopPropagation()}>
-      <h3 className="modal-title">{editingId ? 'Sửa bài học' : 'Tạo bài học'}</h3>
-      <p className="modal-text">
-        {editingId ? 'Cập nhật 2 tiêu đề rồi bấm Lưu.' : 'Bạn có thể chỉnh sửa 2 tiêu đề trước khi tạo.'}
-      </p>
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal-box course-modal">
+            <h3 className="modal-title">{editingId ? 'Sửa bài học' : 'Tạo bài học'}</h3>
+            <p className="modal-text">
+              {editingId ? 'Cập nhật 2 tiêu đề rồi bấm Lưu.' : 'Bạn có thể chỉnh sửa 2 tiêu đề trước khi tạo.'}
+            </p>
 
-      <div style={{ display: 'grid', gap: '0.75rem' }}>
-        <div className="auth-field-small" style={{ marginBottom: 0 }}>
-          <label className="auth-label-small">Tiêu đề 1</label>
-          <input
-            className="auth-input-small"
-            value={title1}
-            onChange={(e) => setTitle1(e.target.value)}
-            placeholder="Nhập tiêu đề 1"
-          />
-        </div>
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              <div className="auth-field-small" style={{ marginBottom: 0 }}>
+                <label className="auth-label-small">Tiêu đề 1</label>
+                <input
+                  className="auth-input-small"
+                  value={title1}
+                  onChange={(e) => setTitle1(e.target.value)}
+                  placeholder="Nhập tiêu đề 1"
+                  disabled={saving}
+                />
+              </div>
 
-        <div className="auth-field-small" style={{ marginBottom: 0 }}>
-          <label className="auth-label-small">Tiêu đề 2</label>
-          <input
-            className="auth-input-small"
-            value={title2}
-            onChange={(e) => setTitle2(e.target.value)}
-            placeholder="Nhập tiêu đề 2"
-          />
-        </div>
-      </div>
+              <div className="auth-field-small" style={{ marginBottom: 0 }}>
+                <label className="auth-label-small">Tiêu đề 2</label>
+                <input
+                  className="auth-input-small"
+                  value={title2}
+                  onChange={(e) => setTitle2(e.target.value)}
+                  placeholder="Nhập tiêu đề 2"
+                  disabled={saving}
+                />
+              </div>
+            </div>
 
-      {error && (
-        <div className="auth-message-small" style={{ marginTop: '0.75rem' }}>
-          {error}
+            {error && (
+              <div className="auth-message-small" style={{ marginTop: '0.75rem' }}>
+                {error}
+              </div>
+            )}
+
+            <div className="modal-actions" style={{ marginTop: '1rem' }}>
+              <button type="button" className="btn-outline btn-sm" onClick={closeModal} disabled={saving}>
+                Huỷ
+              </button>
+              <button
+                type="button"
+                className="btn-primary btn-sm course-create-btn"
+                onClick={onSubmit}
+                disabled={saving}
+              >
+                {saving ? 'Đang lưu...' : (editingId ? 'Lưu' : 'Tạo')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="modal-actions" style={{ marginTop: '1rem' }}>
-        <button type="button" className="btn-outline btn-sm" onClick={closeModal}>
-          Huỷ
-        </button>
-        <button type="button" className="btn-primary btn-sm course-create-btn" onClick={onSubmit}>
-          {editingId ? 'Lưu' : 'Tạo'}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
     </div>
   );
 }
