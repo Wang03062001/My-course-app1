@@ -1,6 +1,6 @@
 'use client';
 
-export default function AdminLessonsPage() {
+export default function LessonsPage() {
   return (
     <div className="admin-card">
       <h2 className="admin-card-title">Quản lý bài học</h2>

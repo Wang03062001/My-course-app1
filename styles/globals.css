@@ -2,7 +2,6 @@
    THEME VARIABLES
 ========================================================= */
 
-/* Light – tone trắng cũ */
 :root {
   --bg-main: #f6f7f8;
   --bg-glass: rgba(255, 255, 255, 0.60);
@@ -19,91 +18,25 @@
   --radius-lg: 24px;
   --radius-md: 14px;
 
-  --shadow-soft: 0 18px 40px rgba(0,0,0,0.08);
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
 /* Dark mode – dùng với data-theme="dark" */
 html[data-theme='dark'] {
   --bg-main: #1c1d20;
 
-  --bg-glass: rgba(255,255,255,0.08);
-  --bg-card: rgba(255,255,255,0.10);
+  --bg-glass: rgba(255, 255, 255, 0.08);
+  --bg-card: rgba(255, 255, 255, 0.10);
 
   --text-main: #f3f4f6;
   --text-subtle: #cbd5e1;
 
-  --border-light: rgba(255,255,255,0.15);
+  --border-light: rgba(255, 255, 255, 0.15);
 
   --accent: #3b82f6;
-  --accent-soft: rgba(59,130,246,0.15);
+  --accent-soft: rgba(59, 130, 246, 0.15);
 
-  --shadow-soft: 0 18px 40px rgba(0,0,0,0.55);
-}
-
-/* Dark overrides theo component */
-html[data-theme='dark'] .admin-sidebar {
-  background: rgba(255,255,255,0.08) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-  backdrop-filter: blur(28px) saturate(120%);
-}
-
-html[data-theme='dark'] .navbar-floating-inner {
-  background: rgba(255,255,255,0.10) !important;
-  border: 1px solid rgba(255,255,255,0.15) !important;
-}
-
-html[data-theme='dark'] .glass-card,
-html[data-theme='dark'] .admin-card,
-html[data-theme='dark'] .info-card {
-  background: rgba(255,255,255,0.12) !important;
-  border: 1px solid rgba(255,255,255,0.12) !important;
-}
-
-html[data-theme='dark'] .glass-card:hover,
-html[data-theme='dark'] .admin-card:hover,
-html[data-theme='dark'] .info-card:hover {
-  background: rgba(255,255,255,0.18) !important;
-}
-
-html[data-theme='dark'] .navbar-user {
-  background: rgba(255,255,255,0.10) !important;
-}
-
-html[data-theme='dark'] .navbar-logout {
-  background: rgba(255,255,255,0.10) !important;
-  border-color: rgba(255,255,255,0.20) !important;
-  color: #e2e8f0;
-}
-
-html[data-theme='dark'] .navbar-logout:hover {
-  background: rgba(255,255,255,0.15) !important;
-}
-
-html[data-theme='dark'] .navbar-search {
-  background: rgba(15, 23, 42, 0.96);
-  border-color: rgba(148, 163, 184, 0.5);
-}
-
-html[data-theme='dark'] .navbar-search-input {
-  color: #e5e7eb;
-}
-
-html[data-theme='dark'] .navbar-search-input::placeholder {
-  color: #9ca3af;
-}
-
-html[data-theme='dark'] .navbar-search-results {
-  background: rgba(15, 23, 42, 0.98);
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-html[data-theme='dark'] .navbar-search-name {
-  color: #e5e7eb;
-}
-
-html[data-theme='dark'] .navbar-search-meta,
-html[data-theme='dark'] .navbar-search-empty {
-  color: #9ca3af;
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.55);
 }
 
 /* =========================================================
@@ -122,15 +55,14 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100%;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body {
   background: var(--bg-main);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden; /* không cho tràn ngang */
+  overflow-x: hidden;
 }
 
 a {
@@ -138,7 +70,6 @@ a {
   text-decoration: none;
 }
 
-/* Hình ảnh, video tự co */
 img,
 video,
 canvas,
@@ -147,10 +78,29 @@ svg {
   height: auto;
 }
 
+/* Default main: dùng cho các trang không cần full width */
 .app-main {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+/* HOME: full width (nếu bạn dùng class home-main) */
+.home-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem 5vw;
+  position: relative;
+}
+
+/* COURSES: break out khỏi .app-main (full ngang) */
+.courses-main {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 0;
+  position: relative;
 }
 
 /* =========================================================
@@ -176,8 +126,10 @@ svg {
   border-radius: 0 0 18px 18px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(255, 255, 255, 0.4);
+
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
+
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 
   display: flex;
@@ -188,7 +140,6 @@ svg {
   animation: navbarFade 0.5s ease-out;
 }
 
-/* class phụ để responsive dễ */
 .main-navbar {
   display: flex;
   align-items: center;
@@ -203,7 +154,7 @@ svg {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* TRÁI: Trang chủ + Dashboard */
+/* LEFT */
 .navbar-left {
   display: flex;
   align-items: center;
@@ -222,11 +173,7 @@ svg {
   border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .navbar-nav-link:hover {
@@ -236,12 +183,12 @@ svg {
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
 }
 
-/* GIỮA: Search */
+/* CENTER */
 .navbar-center {
   flex: 1;
   max-width: 520px;
   min-width: 140px;
-  position: relative;          /* để dropdown position absolute */
+  position: relative;
 }
 
 .navbar-search {
@@ -251,6 +198,7 @@ svg {
   gap: 0.5rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
+
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
@@ -276,7 +224,6 @@ svg {
   color: #9ca3af;
 }
 
-/* Dropdown kết quả tìm kiếm */
 .navbar-search-results {
   position: absolute;
   top: calc(100% + 8px);
@@ -288,6 +235,7 @@ svg {
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.18);
+
   padding: 0.4rem 0.25rem;
   max-height: 260px;
   overflow-y: auto;
@@ -311,9 +259,11 @@ svg {
   height: 26px;
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.08);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--accent);
@@ -354,7 +304,7 @@ svg {
   color: #b91c1c;
 }
 
-/* PHẢI: theme + user + logout */
+/* RIGHT */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -388,23 +338,22 @@ svg {
   color: var(--text-subtle);
 }
 
-/* NÚT ĐỔI THEME */
+/* THEME TOGGLE */
 .theme-toggle {
   width: 34px;
   height: 34px;
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.6);
   background: rgba(255, 255, 255, 0.9);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   cursor: pointer;
   padding: 0;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   color: #4b5563;
 }
 
@@ -415,18 +364,7 @@ svg {
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
 
-html[data-theme='dark'] .theme-toggle {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(148, 163, 184, 0.7);
-  color: #e5e7eb;
-}
-
-html[data-theme='dark'] .theme-toggle:hover {
-  background: rgba(15, 23, 42, 1);
-  border-color: rgba(248, 250, 252, 0.7);
-}
-
-/* ===== Responsive NAVBAR ===== */
+/* NAVBAR responsive */
 @media (max-width: 900px) {
   .navbar-floating-inner {
     height: auto;
@@ -459,10 +397,7 @@ html[data-theme='dark'] .theme-toggle:hover {
     font-size: 0.82rem;
   }
 
-  .navbar-user-name {
-    display: none;
-  }
-
+  .navbar-user-name,
   .nav-guest-text {
     display: none;
   }
@@ -493,13 +428,13 @@ html[data-theme='dark'] .theme-toggle:hover {
   padding: 1.4rem 1.2rem;
 
   border-radius: 28px;
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(255,255,255,0.38);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.38);
 
   backdrop-filter: blur(32px) saturate(180%);
   -webkit-backdrop-filter: blur(32px) saturate(180%);
 
-  box-shadow: 0 18px 45px rgba(0,0,0,0.08);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.08);
   animation: sidebarFloat .5s ease-out;
 }
 
@@ -565,9 +500,10 @@ html[data-theme='dark'] .theme-toggle:hover {
 
 .admin-layout {
   width: 100%;
-  max-width: 100%;
-  margin: 1.5rem 0 2rem;
-  padding: 0 1.5rem 0 0;
+  max-width: none;
+  margin: 0;
+  padding: 1.5rem 5vw;
+
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 1.5rem;
@@ -581,7 +517,7 @@ html[data-theme='dark'] .theme-toggle:hover {
 @media (max-width: 768px) {
   .admin-layout {
     grid-template-columns: 1fr;
-    padding: 0 0.75rem;
+    padding: 1rem 5vw;
   }
 
   .admin-sidebar {
@@ -594,7 +530,7 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 /* =========================================================
-   CARD — GLASS
+   CARD — GLASS (shared)
 ========================================================= */
 
 .glass-card,
@@ -604,7 +540,7 @@ html[data-theme='dark'] .theme-toggle:hover {
   border-radius: 32px !important;
   padding: 1.8rem;
 
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   background: var(--bg-card);
 
   backdrop-filter: blur(30px) saturate(180%);
@@ -613,7 +549,7 @@ html[data-theme='dark'] .theme-toggle:hover {
   box-shadow: var(--shadow-soft);
 
   animation: appleCardFade .5s ease-out;
-  transition: 0.35s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   max-width: 100%;
   overflow: hidden;
 }
@@ -627,10 +563,8 @@ html[data-theme='dark'] .theme-toggle:hover {
 .admin-card:hover,
 .info-card:hover {
   transform: translateY(-6px) scale(1.015);
-  background: rgba(255,255,255,0.82);
-  box-shadow:
-    0 16px 32px rgba(0,0,0,0.12),
-    0 4px 12px rgba(0,0,0,0.05);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* Shine effect */
@@ -643,9 +577,9 @@ html[data-theme='dark'] .theme-toggle:hover {
   border-radius: 32px;
   background: linear-gradient(
     135deg,
-    rgba(255,255,255,0.0) 0%,
-    rgba(255,255,255,0.35) 45%,
-    rgba(255,255,255,0.0) 100%
+    rgba(255, 255, 255, 0.0) 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(255, 255, 255, 0.0) 100%
   );
   opacity: 0;
   pointer-events: none;
@@ -658,7 +592,6 @@ html[data-theme='dark'] .theme-toggle:hover {
   opacity: 0.4;
 }
 
-/* Card header cho admin */
 .admin-card-header {
   display: flex;
   justify-content: space-between;
@@ -666,12 +599,12 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 /* =========================================================
-   TABLES (Users, Lessons...)
+   TABLES
 ========================================================= */
 
 .admin-table-wrapper {
   width: 100%;
-  overflow-x: hidden; /* không cần kéo ngang */
+  overflow-x: hidden;
   margin-top: 0.5rem;
 }
 
@@ -684,9 +617,9 @@ html[data-theme='dark'] .theme-toggle:hover {
 .admin-table th,
 .admin-table td {
   padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid rgba(148,163,184,0.4);
-  white-space: normal;        /* cho phép xuống dòng */
-  word-break: break-word;     /* email / text dài sẽ bẻ dòng */
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  white-space: normal;
+  word-break: break-word;
 }
 
 .admin-table th {
@@ -703,40 +636,6 @@ html[data-theme='dark'] .theme-toggle:hover {
   }
 }
 
-/* Nút nhỏ trong bảng */
-.btn-sm {
-  padding: 0.45rem 1.1rem;
-  font-size: 0.8rem;
-  border-radius: 12px;
-}
-
-.admin-table .btn-primary.btn-sm,
-.admin-table .btn-outline.btn-sm {
-  padding: 0.45rem 1.1rem;
-  font-size: 0.8rem;
-  border-radius: 12px;
-}
-
-.admin-table .btn-outline.btn-sm {
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  background: transparent;
-  color: var(--text-main);
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.admin-table .btn-outline.btn-sm:hover {
-  background-color: #fe3030;
-  border-color: #f53434;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(182, 218, 251, 0.45);
-}
-
 /* =========================================================
    BUTTONS
 ========================================================= */
@@ -745,62 +644,61 @@ html[data-theme='dark'] .theme-toggle:hover {
   margin-top: 2px;
   padding: 0.65rem 1.4rem;
   border-radius: 12px;
-
   background: var(--accent);
   color: #fff;
   font-weight: 600;
-
   transition: 0.25s;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(37,99,235,0.35);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
 }
 
 .btn-outline {
   padding: 0.5rem 1.2rem;
   border-radius: 12px;
-
   background: transparent;
-  border: 1px solid rgba(148,163,184,0.7);
-
+  border: 1px solid rgba(148, 163, 184, 0.7);
   font-weight: 500;
-
   transition: 0.25s;
 }
 
 .btn-outline:hover {
-  background: rgba(148,163,184,0.10);
+  background: rgba(148, 163, 184, 0.10);
 }
 
 /* =========================================================
-   AUTH BOX & MODAL
+   AUTH BOX & MODAL (Overlay)
 ========================================================= */
 
 .auth-box-wrapper {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  margin-top: 0.75rem;
-  padding: 0;
-  display: flex;
-  justify-content: flex-end;
+  position: fixed;
+  top: calc(14px + 64px + 14px);
+  right: 5vw;
+  z-index: 999;
+  pointer-events: none;
+  width: 280px;
 }
 
 .auth-box {
   width: 280px;
   padding: 1.2rem;
-
   border-radius: 18px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(20px);
-
   animation: fadeAuth .25s ease-out;
-  margin-right: 5px;
+  pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+  .auth-box-wrapper {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes fadeAuth {
@@ -808,8 +706,7 @@ html[data-theme='dark'] .theme-toggle:hover {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ... (giữ nguyên các class auth nhỏ, modal...) */
-
+/* Auth small UI */
 .auth-tabs-small {
   display: flex;
   background: rgba(148, 163, 184, 0.15);
@@ -836,9 +733,7 @@ html[data-theme='dark'] .theme-toggle:hover {
   font-weight: 600;
 }
 
-.auth-field-small {
-  margin-bottom: 0.7rem;
-}
+.auth-field-small { margin-bottom: 0.7rem; }
 
 .auth-label-small {
   display: block;
@@ -892,6 +787,7 @@ html[data-theme='dark'] .theme-toggle:hover {
   cursor: pointer;
 }
 
+/* Modal */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -913,9 +809,7 @@ html[data-theme='dark'] .theme-toggle:hover {
 }
 
 @media (max-width: 480px) {
-  .modal-box {
-    max-width: 95vw;
-  }
+  .modal-box { max-width: 95vw; }
 }
 
 .modal-title {
@@ -935,3 +829,299 @@ html[data-theme='dark'] .theme-toggle:hover {
   justify-content: flex-end;
   gap: 0.6rem;
 }
+
+/* =========================================================
+   COURSES UI (Premium cards)
+========================================================= */
+
+/* =========================================================
+   COURSES: Premium cards + grid
+========================================================= */
+
+.courses-page {
+  width: 100%;
+}
+
+/* Grid: auto-fit để luôn đẹp theo chiều ngang, không bị “1 card dài” */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.2rem;
+  align-items: start;
+}
+
+/* Card item */
+.course-item-card {
+  padding: 1.35rem 1.35rem 1.15rem;
+  min-height: 150px;
+
+  /* tạo cảm giác “panel” rõ hơn */
+  border: 1px solid rgba(148, 163, 184, 0.22) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(255, 255, 255, 0.62) 100%
+  ) !important;
+}
+
+html[data-theme="dark"] .course-item-card {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.08) 100%
+  ) !important;
+}
+
+.course-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.course-item-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  max-width: 18ch;
+}
+
+.course-item-subtitle {
+  margin: 0.75rem 0 0;
+  color: var(--text-subtle);
+  font-size: 0.95rem;
+  line-height: 1.35;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-item-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+/* Buttons action */
+.course-action-btn {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-main);
+  padding: 0.34rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] .course-action-btn {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.30);
+  color: #e5e7eb;
+}
+
+.course-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.course-action-edit:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: rgba(37, 99, 235, 0.35);
+}
+
+.course-action-delete:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* Clickable card: hover rõ hơn */
+.course-clickable {
+  cursor: pointer;
+}
+
+.course-clickable:active {
+  transform: translateY(-2px) scale(1.005);
+}
+
+/* Add card */
+.course-add-card {
+  border: 1px dashed rgba(148, 163, 184, 0.55) !important;
+  background: rgba(255, 255, 255, 0.55) !important;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  min-height: 150px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+
+  padding: 1.35rem;
+}
+
+html[data-theme="dark"] .course-add-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.course-add-card:hover {
+  border-color: rgba(37, 99, 235, 0.45) !important;
+}
+
+.course-add-text {
+  position: relative;
+  z-index: 1;
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--text-main);
+  max-width: 85%;
+}
+
+.course-add-plus {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-52%);
+  font-size: 84px;
+  font-weight: 900;
+  color: rgba(37, 99, 235, 0.16);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+html[data-theme="dark"] .course-add-plus {
+  color: rgba(59, 130, 246, 0.20);
+}
+
+.course-add-card:hover .course-add-plus {
+  color: rgba(37, 99, 235, 0.26);
+}
+
+html[data-theme="dark"] .course-add-card:hover .course-add-plus {
+  color: rgba(59, 130, 246, 0.28);
+}
+
+/* Modal riêng cho Courses */
+.course-modal {
+  width: 100%;
+  max-width: 520px;
+}
+
+.course-create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.35);
+}
+
+/* Responsive tối ưu hơn */
+@media (max-width: 740px) {
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   DARK MODE OVERRIDES (components)
+========================================================= */
+
+html[data-theme='dark'] .admin-sidebar {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(28px) saturate(120%);
+}
+
+html[data-theme='dark'] .navbar-floating-inner {
+  background: rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+html[data-theme='dark'] .glass-card,
+html[data-theme='dark'] .admin-card,
+html[data-theme='dark'] .info-card {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-theme='dark'] .glass-card:hover,
+html[data-theme='dark'] .admin-card:hover,
+html[data-theme='dark'] .info-card:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+html[data-theme='dark'] .navbar-user {
+  background: rgba(255, 255, 255, 0.10) !important;
+}
+
+html[data-theme='dark'] .navbar-logout {
+  background: rgba(255, 255, 255, 0.10) !important;
+  border-color: rgba(255, 255, 255, 0.20) !important;
+  color: #e2e8f0;
+}
+
+html[data-theme='dark'] .navbar-logout:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+html[data-theme='dark'] .navbar-search {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.50);
+}
+
+html[data-theme='dark'] .navbar-search-input { color: #e5e7eb; }
+
+html[data-theme='dark'] .navbar-search-input::placeholder { color: #9ca3af; }
+
+html[data-theme='dark'] .navbar-search-results {
+  background: rgba(15, 23, 42, 0.98);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+html[data-theme='dark'] .navbar-search-name { color: #e5e7eb; }
+
+html[data-theme='dark'] .navbar-search-meta,
+html[data-theme='dark'] .navbar-search-empty { color: #9ca3af; }
+
+html[data-theme='dark'] .theme-toggle {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.7);
+  color: #e5e7eb;
+}
+
+html[data-theme='dark'] .theme-toggle:hover {
+  background: rgba(15, 23, 42, 1);
+  border-color: rgba(248, 250, 252, 0.7);
+}
+
+/* Courses dark */
+html[data-theme='dark'] .course-action-btn {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.35);
+  color: #e5e7eb;
+}
+
+html[data-theme='dark'] .course-add-card {
+  background: rgba(59, 130, 246, 0.10) !important;
+  border-color: rgba(59, 130, 246, 0.40) !important;
+}
+
+html[data-theme='dark'] .course-add-plus {
+  color: rgba(59, 130, 246, 0.22);
+}
+
+html[data-theme='dark'] .course-clickable::after {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.20);
+  color: #93c5fd;
+}
+

@@ -28,14 +28,14 @@ export default function Sidebar() {
         </Link>
 
         <Link
-          href="/admin/courses"
+          href="/courses"
           className={pathname.startsWith('/admin/courses') ? 'admin-nav-active' : ''}
         >
           Quản lý khoá học
         </Link>
 
         <Link
-          href="/admin/lessons"
+          href="/lessons"
           className={pathname.startsWith('/admin/lessons') ? 'admin-nav-active' : ''}
         >
           Quản lý lessons
