@@ -1,11 +1,13 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useMemo, useState } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
-// ✅ ĐỔI PATH NÀY cho đúng dự án của bạn nếu khác
-import { supabase } from '../../lib/supabaseClient';
+// ✅ KHUYẾN NGHỊ: dùng getSupabaseClient() để không crash build nếu env thiếu
+import { getSupabaseClient } from '../../lib/supabaseClient';
 
 function toCourse(row) {
   if (!row) return null;
@@ -39,10 +41,14 @@ export default function CoursesPage() {
   const [pageLoading, setPageLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // ✅ Load data từ Supabase theo user (RLS sẽ tự lọc theo auth.uid())
+  const addLabel =
+    items.length === 0 ? 'Chưa có bài học. Hãy thêm bài học của bạn' : 'Thêm bài học';
+
+  // ✅ Load data từ Supabase theo user (RLS sẽ lọc theo auth.uid())
   useEffect(() => {
     if (loading) return;
 
+    // Nếu chưa login: hiển thị rỗng (vẫn cho thấy ô "Thêm bài học" nhưng bấm sẽ báo cần login)
     if (!isLoggedIn) {
       setItems([]);
       return;
@@ -55,6 +61,13 @@ export default function CoursesPage() {
       setPageLoading(true);
 
       try {
+        const supabase = getSupabaseClient();
+        if (!supabase) {
+          throw new Error(
+            'Thiếu cấu hình Supabase. Hãy kiểm tra NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY trên Vercel.'
+          );
+        }
+
         const { data, error: dbErr } = await supabase
           .from('courses')
           .select('id,title1,title2,content,sections,created_at,updated_at')
@@ -63,8 +76,7 @@ export default function CoursesPage() {
         if (dbErr) throw dbErr;
         if (cancelled) return;
 
-        const list = Array.isArray(data) ? data.map(toCourse) : [];
-        setItems(list);
+        setItems(Array.isArray(data) ? data.map(toCourse) : []);
       } catch (e) {
         if (!cancelled) {
           setItems([]);
@@ -80,9 +92,6 @@ export default function CoursesPage() {
       cancelled = true;
     };
   }, [loading, isLoggedIn]);
-
-  const addLabel =
-    items.length === 0 ? 'Chưa có bài học. Hãy thêm bài học của bạn' : 'Thêm bài học';
 
   const openCreateModal = () => {
     setError('');
@@ -108,8 +117,9 @@ export default function CoursesPage() {
     setOpen(true);
   };
 
+  // ✅ Chỉ đóng bằng Huỷ hoặc Lưu/Tạo
   const closeModal = () => {
-    if (saving) return; // tránh đóng khi đang lưu
+    if (saving) return;
     setOpen(false);
     setEditingId(null);
     setError('');
@@ -133,6 +143,13 @@ export default function CoursesPage() {
     setError('');
 
     try {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        throw new Error(
+          'Thiếu cấu hình Supabase. Hãy kiểm tra NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY trên Vercel.'
+        );
+      }
+
       // CREATE
       if (!editingId) {
         const payload = {
@@ -140,7 +157,7 @@ export default function CoursesPage() {
           title2: t2,
           content: '',
           sections: [],
-          // user_id: không cần nếu DB để default auth.uid() + RLS
+          // user_id: để default auth.uid() trong DB + RLS
         };
 
         const { data, error: dbErr } = await supabase
@@ -194,6 +211,13 @@ export default function CoursesPage() {
 
     setError('');
     try {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        throw new Error(
+          'Thiếu cấu hình Supabase. Hãy kiểm tra NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_SUPABASE_ANON_KEY trên Vercel.'
+        );
+      }
+
       const { error: dbErr } = await supabase.from('courses').delete().eq('id', id);
       if (dbErr) throw dbErr;
 
@@ -212,16 +236,13 @@ export default function CoursesPage() {
       <div className="admin-card-header" style={{ marginBottom: '0.9rem' }}>
         <div>
           <h2 className="admin-card-title" style={{ margin: 0 }}>Courses</h2>
-          <p
-            className="admin-card-text"
-            style={{ margin: '0.35rem 0 0', color: 'var(--text-subtle)' }}
-          >
+          <p className="admin-card-text" style={{ margin: '0.35rem 0 0', color: 'var(--text-subtle)' }}>
             Click vào ô để xem chi tiết bài học.
           </p>
         </div>
       </div>
 
-      {error && (
+      {!!error && (
         <div className="auth-message-small" style={{ marginBottom: '0.75rem' }}>
           {error}
         </div>
@@ -229,9 +250,7 @@ export default function CoursesPage() {
 
       {pageLoading && (
         <div className="admin-card" style={{ marginBottom: '0.9rem' }}>
-          <p className="admin-card-text" style={{ margin: 0 }}>
-            Đang tải dữ liệu...
-          </p>
+          <p className="admin-card-text" style={{ margin: 0 }}>Đang tải dữ liệu...</p>
         </div>
       )}
 
@@ -255,28 +274,31 @@ export default function CoursesPage() {
             <div className="course-item-top">
               <h3 className="course-item-title">{it.title1}</h3>
 
-              <div className="course-item-actions">
-                <button
-                  type="button"
-                  className="course-action-btn course-action-edit"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openEditModal(it);
-                  }}
-                >
-                  Sửa
-                </button>
-                <button
-                  type="button"
-                  className="course-action-btn course-action-delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(it.id);
-                  }}
-                >
-                  Xóa
-                </button>
-              </div>
+              {/* ✅ Chỉ hiện khi login */}
+              {isLoggedIn && (
+                <div className="course-item-actions">
+                  <button
+                    type="button"
+                    className="course-action-btn course-action-edit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(it);
+                    }}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    type="button"
+                    className="course-action-btn course-action-delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(it.id);
+                    }}
+                  >
+                    Xóa
+                  </button>
+                </div>
+              )}
             </div>
 
             <p className="course-item-subtitle">{it.title2}</p>
@@ -295,7 +317,7 @@ export default function CoursesPage() {
         </button>
       </div>
 
-      {/* Popup Create/Edit */}
+      {/* Popup Create/Edit (✅ không click backdrop để thoát) */}
       {open && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-box course-modal">
@@ -328,16 +350,22 @@ export default function CoursesPage() {
               </div>
             </div>
 
-            {error && (
+            {!!error && (
               <div className="auth-message-small" style={{ marginTop: '0.75rem' }}>
                 {error}
               </div>
             )}
 
             <div className="modal-actions" style={{ marginTop: '1rem' }}>
-              <button type="button" className="btn-outline btn-sm" onClick={closeModal} disabled={saving}>
+              <button
+                type="button"
+                className="btn-outline btn-sm"
+                onClick={closeModal}
+                disabled={saving}
+              >
                 Huỷ
               </button>
+
               <button
                 type="button"
                 className="btn-primary btn-sm course-create-btn"
