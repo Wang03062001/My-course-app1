@@ -6,6 +6,10 @@ import AuthBox from '../components/AuthBox';
 import { AuthProvider } from '../hooks/useAuth';
 import useAuth from '../hooks/useAuth';
 import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+
+// ✅ Import supabase client (ANON) để debug
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * AppShell: phần dùng useAuth & usePathname, nằm BÊN TRONG AuthProvider
@@ -20,6 +24,21 @@ function AppShell({ children }) {
   // ✅ Full-width pages (không bị bọc bởi .app-main)
   const isCoursesPage = pathname.startsWith('/courses');
   const isLessonsPage = pathname.startsWith('/lessons');
+
+  // ✅ Expose supabase ra window để test trong DevTools Console
+  useEffect(() => {
+    const debugEnabled =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.NEXT_PUBLIC_DEBUG_SUPABASE === '1';
+
+    if (!debugEnabled) return;
+
+    // window.supabase chỉ phục vụ debug
+    window.supabase = supabase;
+
+    // Optional: log nhẹ để biết đã gắn
+    // console.log('Debug: window.supabase is ready');
+  }, []);
 
   return (
     <>
